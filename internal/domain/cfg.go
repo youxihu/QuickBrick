@@ -3,7 +3,16 @@ package domain
 type Config struct {
 	Port        string     `yaml:"port"`
 	SecretToken string     `yaml:"secret_token"`
+	DB          DBConfig   `yaml:"database"`
 	Pipelines   []Pipeline `yaml:"pipelines"`
+}
+
+type DBConfig struct {
+	Driver   string `yaml:"driver"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Host     string `yaml:"host"`
+	Database string `yaml:"database"`
 }
 
 type Pipeline struct {

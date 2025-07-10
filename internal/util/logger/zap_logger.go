@@ -12,10 +12,9 @@ var Logger *zap.Logger
 func InitLogger() {
 	encoderCfg := zapcore.EncoderConfig{
 		TimeKey:        "ts",
-		LevelKey:       "level",
-		NameKey:        "logger",
+		LevelKey:       "LEVEL",
+		NameKey:        "service",
 		CallerKey:      "caller",
-		MessageKey:     "msg",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     "\n",
 		EncodeLevel:    zapcore.CapitalLevelEncoder, // 大写 LEVEL

@@ -15,7 +15,13 @@ func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string
 	// 解析环境层级
 	envType, subEnv, err := parseEnv(env)
 	if err != nil {
-		Logger.Error("不支持的环境类型", zap.String("env", env), zap.Error(err))
+		Logger.Error("Unsupported environment type",
+			zap.Any("msg", map[string]interface{}{
+				"action": "unsupported environment type",
+				"env": env,
+				"error": err.Error(),
+			}),
+		)
 		return err
 	}
 
@@ -31,9 +37,12 @@ func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		err = os.MkdirAll(logDir, 0755)
 		if err != nil {
-			Logger.Error("无法创建日志目录",
-				zap.String("dir", logDir),
-				zap.Error(err),
+			Logger.Error("Cannot create log directory",
+				zap.Any("msg", map[string]interface{}{
+					"action": "cannot create log directory",
+					"dir": logDir,
+					"error": err.Error(),
+				}),
 			)
 			return fmt.Errorf("无法创建日志目录: %v", err)
 		}
@@ -46,9 +55,12 @@ func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string
 	// 写入日志内容
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		Logger.Error("无法打开日志文件",
-			zap.String("filename", filename),
-			zap.Error(err),
+		Logger.Error("Cannot open log file",
+			zap.Any("msg", map[string]interface{}{
+				"action": "cannot open log file",
+				"filename": filename,
+				"error": err.Error(),
+			}),
 		)
 		return fmt.Errorf("无法打开日志文件: %v", err)
 	}
@@ -57,18 +69,24 @@ func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string
 	content := generateLogContent(pushEvent, env, script, scriptOutput)
 	_, err = file.WriteString(content)
 	if err != nil {
-		Logger.Error("写入日志失败",
-			zap.String("filename", filename),
-			zap.Error(err),
+		Logger.Error("Write log failed",
+			zap.Any("msg", map[string]interface{}{
+				"action": "write log failed",
+				"filename": filename,
+				"error": err.Error(),
+			}),
 		)
 		return fmt.Errorf("写入日志失败: %v", err)
 	}
 
-	Logger.Info("成功写入构建日志",
-		zap.String("env", env),
-		zap.String("filename", filename),
-		zap.String("project", pushEvent.Project.Name),
-		zap.String("ref", pushEvent.Ref),
+	Logger.Info("Write build log success",
+		zap.Any("msg", map[string]interface{}{
+			"action": "write build log success",
+			"env": env,
+			"filename": filename,
+			"project": pushEvent.Project.Name,
+			"ref": pushEvent.Ref,
+		}),
 	)
 
 	return nil
@@ -111,35 +129,37 @@ func generateLogContent(pushEvent domain.PushEvent, env string, script string, s
 
 	// === 触发详情 ===
 	builder.WriteString("========================================\n")
-	builder.WriteString("            🔔 触发详情\n")
+	builder.WriteString("            🔔 触发详情（Trigger Info）\n")
 	builder.WriteString("========================================\n")
-	builder.WriteString(fmt.Sprintf("时间:     %s\n", time.Now().Format("2006-01-02 15:04:05")))
-	builder.WriteString(fmt.Sprintf("环境:     %s\n", env))
-	builder.WriteString(fmt.Sprintf("项目:     %s (%s)\n", pushEvent.Project.Name, pushEvent.Project.URL))
-	builder.WriteString(fmt.Sprintf("分支/Tag: %s\n", pushEvent.Ref))
-	builder.WriteString(fmt.Sprintf("事件类型: %s\n", pushEvent.ObjectKind))
+	builder.WriteString(fmt.Sprintf("记录生成时间（Log Time）：%s\n", time.Now().Format("2006-01-02 15:04:05")))
+	builder.WriteString(fmt.Sprintf("环境标识（Env）：%s\n", env))
+	builder.WriteString(fmt.Sprintf("项目名称（Project Name）：%s\n", pushEvent.Project.Name))
+	builder.WriteString(fmt.Sprintf("项目地址（Project URL）：%s\n", pushEvent.Project.URL))
+	builder.WriteString(fmt.Sprintf("分支或标签（Git Ref/Tag）：%s\n", pushEvent.Ref))
+	builder.WriteString(fmt.Sprintf("事件类型（Event Type）：%s\n", pushEvent.ObjectKind))
 
 	// === 提交记录 ===
 	builder.WriteString("\n========================================\n")
-	builder.WriteString("            📤 提交记录\n")
+	builder.WriteString("            📤 提交记录（Git Commit Info）\n")
 	builder.WriteString("========================================\n")
 	for i, commit := range pushEvent.Commits {
-		builder.WriteString(fmt.Sprintf("提交 #%d:\n", i+1))
-		builder.WriteString(fmt.Sprintf("  ID:         %s\n", commit.ID))
-		builder.WriteString(fmt.Sprintf("  提交者:     %s <%s>\n", commit.Author.Name, commit.Author.Email))
-		builder.WriteString(fmt.Sprintf("  提交信息:   %s\n", commit.Message))
-		builder.WriteString(fmt.Sprintf("  查看链接:   %s\n", commit.URL))
+		builder.WriteString(fmt.Sprintf("提交 #%d：\n", i+1))
+		builder.WriteString(fmt.Sprintf("  Commit ID：%s\n", commit.ID))
+		builder.WriteString(fmt.Sprintf("  提交人（Committer）：%s <%s>\n", commit.Author.Name, commit.Author.Email))
+		builder.WriteString(fmt.Sprintf("  提交说明（Message）：%s\n", commit.Message))
+		builder.WriteString(fmt.Sprintf("  提交时间（Timestamp）：%s\n", commit.Timestamp))
+		builder.WriteString(fmt.Sprintf("  提交详情链接（URL）：%s\n", commit.URL))
 	}
 
 	// === 执行脚本 ===
 	builder.WriteString("\n========================================\n")
-	builder.WriteString("            🛠️ 执行脚本\n")
+	builder.WriteString("            🛠️ 执行脚本（Script Execution）\n")
 	builder.WriteString("========================================\n")
-	builder.WriteString(fmt.Sprintf("脚本路径: %s\n", script))
+	builder.WriteString(fmt.Sprintf("脚本路径（Script Path）：%s\n", script))
 
-	builder.WriteString("\n--- 脚本输出 ---\n")
+	builder.WriteString("\n--- 脚本输出（Script Output） ---\n")
 	if scriptOutput == "" {
-		builder.WriteString("(无输出)\n")
+		builder.WriteString("(无输出/No Output)\n")
 	} else {
 		lines := strings.Split(scriptOutput, "\n")
 		for _, line := range lines {

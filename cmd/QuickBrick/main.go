@@ -8,7 +8,7 @@ import (
 
 func main() {
 	logger.InitLogger()
-	defer logger.Logger.Sync() // 必须调用 Sync 来刷新缓冲区
+	defer logger.Logger.Sync()
 	// 启动日志清理定时任务
 	cron.StartDailyLogCleaner()
 

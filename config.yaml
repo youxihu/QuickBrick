@@ -1,6 +1,15 @@
 port: "18088"
 secret_token: "123abc123"
 
+# MySQL 配置
+database:
+  driver: mysql
+  user: root
+  password: P@ssword1
+  host: 192.168.0.214:21406
+  database: aiops
+
+
 pipelines:
   - name: bbx_Front_FAT_UAT
     type: frontend
