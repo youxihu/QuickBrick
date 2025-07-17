@@ -6,5 +6,5 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// RetryHistory is the predicate function for retryhistory builders.
-type RetryHistory func(*sql.Selector)
+// PipelineExecutionLog is the predicate function for pipelineexecutionlog builders.
+type PipelineExecutionLog func(*sql.Selector)

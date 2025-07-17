@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"QuickBrick/internal/domain/ent"
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 	"QuickBrick/internal/domain/ent/predicate"
-	"QuickBrick/internal/domain/ent/retryhistory"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -69,38 +69,38 @@ func (f TraverseFunc) Traverse(ctx context.Context, q ent.Query) error {
 	return f(ctx, query)
 }
 
-// The RetryHistoryFunc type is an adapter to allow the use of ordinary function as a Querier.
-type RetryHistoryFunc func(context.Context, *ent.RetryHistoryQuery) (ent.Value, error)
+// The PipelineExecutionLogFunc type is an adapter to allow the use of ordinary function as a Querier.
+type PipelineExecutionLogFunc func(context.Context, *ent.PipelineExecutionLogQuery) (ent.Value, error)
 
 // Query calls f(ctx, q).
-func (f RetryHistoryFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
-	if q, ok := q.(*ent.RetryHistoryQuery); ok {
+func (f PipelineExecutionLogFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.PipelineExecutionLogQuery); ok {
 		return f(ctx, q)
 	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *ent.RetryHistoryQuery", q)
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.PipelineExecutionLogQuery", q)
 }
 
-// The TraverseRetryHistory type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseRetryHistory func(context.Context, *ent.RetryHistoryQuery) error
+// The TraversePipelineExecutionLog type is an adapter to allow the use of ordinary function as Traverser.
+type TraversePipelineExecutionLog func(context.Context, *ent.PipelineExecutionLogQuery) error
 
 // Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseRetryHistory) Intercept(next ent.Querier) ent.Querier {
+func (f TraversePipelineExecutionLog) Intercept(next ent.Querier) ent.Querier {
 	return next
 }
 
 // Traverse calls f(ctx, q).
-func (f TraverseRetryHistory) Traverse(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.RetryHistoryQuery); ok {
+func (f TraversePipelineExecutionLog) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PipelineExecutionLogQuery); ok {
 		return f(ctx, q)
 	}
-	return fmt.Errorf("unexpected query type %T. expect *ent.RetryHistoryQuery", q)
+	return fmt.Errorf("unexpected query type %T. expect *ent.PipelineExecutionLogQuery", q)
 }
 
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
-	case *ent.RetryHistoryQuery:
-		return &query[*ent.RetryHistoryQuery, predicate.RetryHistory, retryhistory.OrderOption]{typ: ent.TypeRetryHistory, tq: q}, nil
+	case *ent.PipelineExecutionLogQuery:
+		return &query[*ent.PipelineExecutionLogQuery, predicate.PipelineExecutionLog, pipelineexecutionlog.OrderOption]{typ: ent.TypePipelineExecutionLog, tq: q}, nil
 	default:
 		return nil, fmt.Errorf("unknown query type %T", q)
 	}

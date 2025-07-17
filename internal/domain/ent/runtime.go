@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"QuickBrick/internal/domain/ent/retryhistory"
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 	"QuickBrick/internal/domain/ent/schema"
 	"time"
 )
@@ -12,10 +12,14 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	retryhistoryFields := schema.RetryHistory{}.Fields()
-	_ = retryhistoryFields
-	// retryhistoryDescCreatedAt is the schema descriptor for created_at field.
-	retryhistoryDescCreatedAt := retryhistoryFields[1].Descriptor()
-	// retryhistory.DefaultCreatedAt holds the default value on creation for the created_at field.
-	retryhistory.DefaultCreatedAt = retryhistoryDescCreatedAt.Default.(func() time.Time)
+	pipelineexecutionlogFields := schema.PipelineExecutionLog{}.Fields()
+	_ = pipelineexecutionlogFields
+	// pipelineexecutionlogDescStatus is the schema descriptor for status field.
+	pipelineexecutionlogDescStatus := pipelineexecutionlogFields[8].Descriptor()
+	// pipelineexecutionlog.DefaultStatus holds the default value on creation for the status field.
+	pipelineexecutionlog.DefaultStatus = pipelineexecutionlogDescStatus.Default.(string)
+	// pipelineexecutionlogDescCreatedAt is the schema descriptor for created_at field.
+	pipelineexecutionlogDescCreatedAt := pipelineexecutionlogFields[9].Descriptor()
+	// pipelineexecutionlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelineexecutionlog.DefaultCreatedAt = pipelineexecutionlogDescCreatedAt.Default.(func() time.Time)
 }

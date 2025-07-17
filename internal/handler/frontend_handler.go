@@ -2,6 +2,7 @@ package handler
 
 import (
 	"QuickBrick/internal/config"
+	"context"
 	"encoding/json"
 	"go.uber.org/zap"
 	"net/http"
@@ -73,7 +74,9 @@ func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryS
 		return
 	}
 
-	// 下沉到 service 层统一处理
-	results, _ := webhookService.TriggerAndRecordPipelines(pushEvent, triggeredPipelines, historySvc, c.Request.Context())
-	c.JSON(http.StatusOK, gin.H{"status": "success", "results": results})
+	// 调用异步方法，无需等待
+	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background())
+
+	// 立即返回成功响应
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "pipelines triggered asynchronously"})
 }

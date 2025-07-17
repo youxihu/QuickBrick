@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"QuickBrick/internal/domain/ent/retryhistory"
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 	"context"
 	"errors"
 	"fmt"
@@ -73,7 +73,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			retryhistory.Table: retryhistory.ValidColumn,
+			pipelineexecutionlog.Table: pipelineexecutionlog.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

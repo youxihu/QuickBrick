@@ -3,8 +3,8 @@
 package ent
 
 import (
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 	"QuickBrick/internal/domain/ent/predicate"
-	"QuickBrick/internal/domain/ent/retryhistory"
 	"context"
 	"errors"
 	"fmt"
@@ -24,44 +24,41 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeRetryHistory = "RetryHistory"
+	TypePipelineExecutionLog = "PipelineExecutionLog"
 )
 
-// RetryHistoryMutation represents an operation that mutates the RetryHistory nodes in the graph.
-type RetryHistoryMutation struct {
+// PipelineExecutionLogMutation represents an operation that mutates the PipelineExecutionLog nodes in the graph.
+type PipelineExecutionLogMutation struct {
 	config
 	op             Op
 	typ            string
 	id             *int64
-	created_at     *time.Time
 	env            *string
-	project        *string
-	project_url    *string
-	ref            *string
+	_type          *string
 	event_type     *string
-	commit_id      *string
-	committer      *string
-	commit_message *string
-	commit_url     *string
 	pipeline_name  *string
-	pipeline_type  *string
+	username_email *string
+	commit_id      *string
+	project_url    *string
+	status         *string
+	created_at     *time.Time
 	clearedFields  map[string]struct{}
 	done           bool
-	oldValue       func(context.Context) (*RetryHistory, error)
-	predicates     []predicate.RetryHistory
+	oldValue       func(context.Context) (*PipelineExecutionLog, error)
+	predicates     []predicate.PipelineExecutionLog
 }
 
-var _ ent.Mutation = (*RetryHistoryMutation)(nil)
+var _ ent.Mutation = (*PipelineExecutionLogMutation)(nil)
 
-// retryhistoryOption allows management of the mutation configuration using functional options.
-type retryhistoryOption func(*RetryHistoryMutation)
+// pipelineexecutionlogOption allows management of the mutation configuration using functional options.
+type pipelineexecutionlogOption func(*PipelineExecutionLogMutation)
 
-// newRetryHistoryMutation creates new mutation for the RetryHistory entity.
-func newRetryHistoryMutation(c config, op Op, opts ...retryhistoryOption) *RetryHistoryMutation {
-	m := &RetryHistoryMutation{
+// newPipelineExecutionLogMutation creates new mutation for the PipelineExecutionLog entity.
+func newPipelineExecutionLogMutation(c config, op Op, opts ...pipelineexecutionlogOption) *PipelineExecutionLogMutation {
+	m := &PipelineExecutionLogMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeRetryHistory,
+		typ:           TypePipelineExecutionLog,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -70,20 +67,20 @@ func newRetryHistoryMutation(c config, op Op, opts ...retryhistoryOption) *Retry
 	return m
 }
 
-// withRetryHistoryID sets the ID field of the mutation.
-func withRetryHistoryID(id int64) retryhistoryOption {
-	return func(m *RetryHistoryMutation) {
+// withPipelineExecutionLogID sets the ID field of the mutation.
+func withPipelineExecutionLogID(id int64) pipelineexecutionlogOption {
+	return func(m *PipelineExecutionLogMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *RetryHistory
+			value *PipelineExecutionLog
 		)
-		m.oldValue = func(ctx context.Context) (*RetryHistory, error) {
+		m.oldValue = func(ctx context.Context) (*PipelineExecutionLog, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().RetryHistory.Get(ctx, id)
+					value, err = m.Client().PipelineExecutionLog.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -92,10 +89,10 @@ func withRetryHistoryID(id int64) retryhistoryOption {
 	}
 }
 
-// withRetryHistory sets the old RetryHistory of the mutation.
-func withRetryHistory(node *RetryHistory) retryhistoryOption {
-	return func(m *RetryHistoryMutation) {
-		m.oldValue = func(context.Context) (*RetryHistory, error) {
+// withPipelineExecutionLog sets the old PipelineExecutionLog of the mutation.
+func withPipelineExecutionLog(node *PipelineExecutionLog) pipelineexecutionlogOption {
+	return func(m *PipelineExecutionLogMutation) {
+		m.oldValue = func(context.Context) (*PipelineExecutionLog, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -104,7 +101,7 @@ func withRetryHistory(node *RetryHistory) retryhistoryOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m RetryHistoryMutation) Client() *Client {
+func (m PipelineExecutionLogMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -112,7 +109,7 @@ func (m RetryHistoryMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m RetryHistoryMutation) Tx() (*Tx, error) {
+func (m PipelineExecutionLogMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -122,14 +119,14 @@ func (m RetryHistoryMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of RetryHistory entities.
-func (m *RetryHistoryMutation) SetID(id int64) {
+// operation is only accepted on creation of PipelineExecutionLog entities.
+func (m *PipelineExecutionLogMutation) SetID(id int64) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *RetryHistoryMutation) ID() (id int64, exists bool) {
+func (m *PipelineExecutionLogMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -140,7 +137,7 @@ func (m *RetryHistoryMutation) ID() (id int64, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *RetryHistoryMutation) IDs(ctx context.Context) ([]int64, error) {
+func (m *PipelineExecutionLogMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -149,55 +146,19 @@ func (m *RetryHistoryMutation) IDs(ctx context.Context) ([]int64, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().RetryHistory.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().PipelineExecutionLog.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (m *RetryHistoryMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *RetryHistoryMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *RetryHistoryMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
 // SetEnv sets the "env" field.
-func (m *RetryHistoryMutation) SetEnv(s string) {
+func (m *PipelineExecutionLogMutation) SetEnv(s string) {
 	m.env = &s
 }
 
 // Env returns the value of the "env" field in the mutation.
-func (m *RetryHistoryMutation) Env() (r string, exists bool) {
+func (m *PipelineExecutionLogMutation) Env() (r string, exists bool) {
 	v := m.env
 	if v == nil {
 		return
@@ -205,10 +166,10 @@ func (m *RetryHistoryMutation) Env() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEnv returns the old "env" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
+// OldEnv returns the old "env" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldEnv(ctx context.Context) (v string, err error) {
+func (m *PipelineExecutionLogMutation) OldEnv(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnv is only allowed on UpdateOne operations")
 	}
@@ -223,125 +184,53 @@ func (m *RetryHistoryMutation) OldEnv(ctx context.Context) (v string, err error)
 }
 
 // ResetEnv resets all changes to the "env" field.
-func (m *RetryHistoryMutation) ResetEnv() {
+func (m *PipelineExecutionLogMutation) ResetEnv() {
 	m.env = nil
 }
 
-// SetProject sets the "project" field.
-func (m *RetryHistoryMutation) SetProject(s string) {
-	m.project = &s
+// SetType sets the "type" field.
+func (m *PipelineExecutionLogMutation) SetType(s string) {
+	m._type = &s
 }
 
-// Project returns the value of the "project" field in the mutation.
-func (m *RetryHistoryMutation) Project() (r string, exists bool) {
-	v := m.project
+// GetType returns the value of the "type" field in the mutation.
+func (m *PipelineExecutionLogMutation) GetType() (r string, exists bool) {
+	v := m._type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldProject returns the old "project" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
+// OldType returns the old "type" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldProject(ctx context.Context) (v string, err error) {
+func (m *PipelineExecutionLogMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProject is only allowed on UpdateOne operations")
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProject requires an ID field in the mutation")
+		return v, errors.New("OldType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProject: %w", err)
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
 	}
-	return oldValue.Project, nil
+	return oldValue.Type, nil
 }
 
-// ResetProject resets all changes to the "project" field.
-func (m *RetryHistoryMutation) ResetProject() {
-	m.project = nil
-}
-
-// SetProjectURL sets the "project_url" field.
-func (m *RetryHistoryMutation) SetProjectURL(s string) {
-	m.project_url = &s
-}
-
-// ProjectURL returns the value of the "project_url" field in the mutation.
-func (m *RetryHistoryMutation) ProjectURL() (r string, exists bool) {
-	v := m.project_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectURL returns the old "project_url" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldProjectURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectURL: %w", err)
-	}
-	return oldValue.ProjectURL, nil
-}
-
-// ResetProjectURL resets all changes to the "project_url" field.
-func (m *RetryHistoryMutation) ResetProjectURL() {
-	m.project_url = nil
-}
-
-// SetRef sets the "ref" field.
-func (m *RetryHistoryMutation) SetRef(s string) {
-	m.ref = &s
-}
-
-// Ref returns the value of the "ref" field in the mutation.
-func (m *RetryHistoryMutation) Ref() (r string, exists bool) {
-	v := m.ref
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRef returns the old "ref" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldRef(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRef is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRef requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRef: %w", err)
-	}
-	return oldValue.Ref, nil
-}
-
-// ResetRef resets all changes to the "ref" field.
-func (m *RetryHistoryMutation) ResetRef() {
-	m.ref = nil
+// ResetType resets all changes to the "type" field.
+func (m *PipelineExecutionLogMutation) ResetType() {
+	m._type = nil
 }
 
 // SetEventType sets the "event_type" field.
-func (m *RetryHistoryMutation) SetEventType(s string) {
+func (m *PipelineExecutionLogMutation) SetEventType(s string) {
 	m.event_type = &s
 }
 
 // EventType returns the value of the "event_type" field in the mutation.
-func (m *RetryHistoryMutation) EventType() (r string, exists bool) {
+func (m *PipelineExecutionLogMutation) EventType() (r string, exists bool) {
 	v := m.event_type
 	if v == nil {
 		return
@@ -349,10 +238,10 @@ func (m *RetryHistoryMutation) EventType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEventType returns the old "event_type" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
+// OldEventType returns the old "event_type" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldEventType(ctx context.Context) (v string, err error) {
+func (m *PipelineExecutionLogMutation) OldEventType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEventType is only allowed on UpdateOne operations")
 	}
@@ -367,161 +256,17 @@ func (m *RetryHistoryMutation) OldEventType(ctx context.Context) (v string, err 
 }
 
 // ResetEventType resets all changes to the "event_type" field.
-func (m *RetryHistoryMutation) ResetEventType() {
+func (m *PipelineExecutionLogMutation) ResetEventType() {
 	m.event_type = nil
 }
 
-// SetCommitID sets the "commit_id" field.
-func (m *RetryHistoryMutation) SetCommitID(s string) {
-	m.commit_id = &s
-}
-
-// CommitID returns the value of the "commit_id" field in the mutation.
-func (m *RetryHistoryMutation) CommitID() (r string, exists bool) {
-	v := m.commit_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCommitID returns the old "commit_id" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldCommitID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCommitID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCommitID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCommitID: %w", err)
-	}
-	return oldValue.CommitID, nil
-}
-
-// ResetCommitID resets all changes to the "commit_id" field.
-func (m *RetryHistoryMutation) ResetCommitID() {
-	m.commit_id = nil
-}
-
-// SetCommitter sets the "committer" field.
-func (m *RetryHistoryMutation) SetCommitter(s string) {
-	m.committer = &s
-}
-
-// Committer returns the value of the "committer" field in the mutation.
-func (m *RetryHistoryMutation) Committer() (r string, exists bool) {
-	v := m.committer
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCommitter returns the old "committer" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldCommitter(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCommitter is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCommitter requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCommitter: %w", err)
-	}
-	return oldValue.Committer, nil
-}
-
-// ResetCommitter resets all changes to the "committer" field.
-func (m *RetryHistoryMutation) ResetCommitter() {
-	m.committer = nil
-}
-
-// SetCommitMessage sets the "commit_message" field.
-func (m *RetryHistoryMutation) SetCommitMessage(s string) {
-	m.commit_message = &s
-}
-
-// CommitMessage returns the value of the "commit_message" field in the mutation.
-func (m *RetryHistoryMutation) CommitMessage() (r string, exists bool) {
-	v := m.commit_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCommitMessage returns the old "commit_message" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldCommitMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCommitMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCommitMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCommitMessage: %w", err)
-	}
-	return oldValue.CommitMessage, nil
-}
-
-// ResetCommitMessage resets all changes to the "commit_message" field.
-func (m *RetryHistoryMutation) ResetCommitMessage() {
-	m.commit_message = nil
-}
-
-// SetCommitURL sets the "commit_url" field.
-func (m *RetryHistoryMutation) SetCommitURL(s string) {
-	m.commit_url = &s
-}
-
-// CommitURL returns the value of the "commit_url" field in the mutation.
-func (m *RetryHistoryMutation) CommitURL() (r string, exists bool) {
-	v := m.commit_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCommitURL returns the old "commit_url" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldCommitURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCommitURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCommitURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCommitURL: %w", err)
-	}
-	return oldValue.CommitURL, nil
-}
-
-// ResetCommitURL resets all changes to the "commit_url" field.
-func (m *RetryHistoryMutation) ResetCommitURL() {
-	m.commit_url = nil
-}
-
 // SetPipelineName sets the "pipeline_name" field.
-func (m *RetryHistoryMutation) SetPipelineName(s string) {
+func (m *PipelineExecutionLogMutation) SetPipelineName(s string) {
 	m.pipeline_name = &s
 }
 
 // PipelineName returns the value of the "pipeline_name" field in the mutation.
-func (m *RetryHistoryMutation) PipelineName() (r string, exists bool) {
+func (m *PipelineExecutionLogMutation) PipelineName() (r string, exists bool) {
 	v := m.pipeline_name
 	if v == nil {
 		return
@@ -529,10 +274,10 @@ func (m *RetryHistoryMutation) PipelineName() (r string, exists bool) {
 	return *v, true
 }
 
-// OldPipelineName returns the old "pipeline_name" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
+// OldPipelineName returns the old "pipeline_name" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldPipelineName(ctx context.Context) (v string, err error) {
+func (m *PipelineExecutionLogMutation) OldPipelineName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPipelineName is only allowed on UpdateOne operations")
 	}
@@ -547,55 +292,199 @@ func (m *RetryHistoryMutation) OldPipelineName(ctx context.Context) (v string, e
 }
 
 // ResetPipelineName resets all changes to the "pipeline_name" field.
-func (m *RetryHistoryMutation) ResetPipelineName() {
+func (m *PipelineExecutionLogMutation) ResetPipelineName() {
 	m.pipeline_name = nil
 }
 
-// SetPipelineType sets the "pipeline_type" field.
-func (m *RetryHistoryMutation) SetPipelineType(s string) {
-	m.pipeline_type = &s
+// SetUsernameEmail sets the "username_email" field.
+func (m *PipelineExecutionLogMutation) SetUsernameEmail(s string) {
+	m.username_email = &s
 }
 
-// PipelineType returns the value of the "pipeline_type" field in the mutation.
-func (m *RetryHistoryMutation) PipelineType() (r string, exists bool) {
-	v := m.pipeline_type
+// UsernameEmail returns the value of the "username_email" field in the mutation.
+func (m *PipelineExecutionLogMutation) UsernameEmail() (r string, exists bool) {
+	v := m.username_email
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPipelineType returns the old "pipeline_type" field's value of the RetryHistory entity.
-// If the RetryHistory object wasn't provided to the builder, the object is fetched from the database.
+// OldUsernameEmail returns the old "username_email" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RetryHistoryMutation) OldPipelineType(ctx context.Context) (v string, err error) {
+func (m *PipelineExecutionLogMutation) OldUsernameEmail(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPipelineType is only allowed on UpdateOne operations")
+		return v, errors.New("OldUsernameEmail is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPipelineType requires an ID field in the mutation")
+		return v, errors.New("OldUsernameEmail requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPipelineType: %w", err)
+		return v, fmt.Errorf("querying old value for OldUsernameEmail: %w", err)
 	}
-	return oldValue.PipelineType, nil
+	return oldValue.UsernameEmail, nil
 }
 
-// ResetPipelineType resets all changes to the "pipeline_type" field.
-func (m *RetryHistoryMutation) ResetPipelineType() {
-	m.pipeline_type = nil
+// ResetUsernameEmail resets all changes to the "username_email" field.
+func (m *PipelineExecutionLogMutation) ResetUsernameEmail() {
+	m.username_email = nil
 }
 
-// Where appends a list predicates to the RetryHistoryMutation builder.
-func (m *RetryHistoryMutation) Where(ps ...predicate.RetryHistory) {
+// SetCommitID sets the "commit_id" field.
+func (m *PipelineExecutionLogMutation) SetCommitID(s string) {
+	m.commit_id = &s
+}
+
+// CommitID returns the value of the "commit_id" field in the mutation.
+func (m *PipelineExecutionLogMutation) CommitID() (r string, exists bool) {
+	v := m.commit_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommitID returns the old "commit_id" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineExecutionLogMutation) OldCommitID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommitID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommitID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommitID: %w", err)
+	}
+	return oldValue.CommitID, nil
+}
+
+// ResetCommitID resets all changes to the "commit_id" field.
+func (m *PipelineExecutionLogMutation) ResetCommitID() {
+	m.commit_id = nil
+}
+
+// SetProjectURL sets the "project_url" field.
+func (m *PipelineExecutionLogMutation) SetProjectURL(s string) {
+	m.project_url = &s
+}
+
+// ProjectURL returns the value of the "project_url" field in the mutation.
+func (m *PipelineExecutionLogMutation) ProjectURL() (r string, exists bool) {
+	v := m.project_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectURL returns the old "project_url" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineExecutionLogMutation) OldProjectURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectURL: %w", err)
+	}
+	return oldValue.ProjectURL, nil
+}
+
+// ResetProjectURL resets all changes to the "project_url" field.
+func (m *PipelineExecutionLogMutation) ResetProjectURL() {
+	m.project_url = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PipelineExecutionLogMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PipelineExecutionLogMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineExecutionLogMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PipelineExecutionLogMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PipelineExecutionLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PipelineExecutionLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PipelineExecutionLog entity.
+// If the PipelineExecutionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineExecutionLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PipelineExecutionLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the PipelineExecutionLogMutation builder.
+func (m *PipelineExecutionLogMutation) Where(ps ...predicate.PipelineExecutionLog) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the RetryHistoryMutation builder. Using this method,
+// WhereP appends storage-level predicates to the PipelineExecutionLogMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *RetryHistoryMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.RetryHistory, len(ps))
+func (m *PipelineExecutionLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PipelineExecutionLog, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -603,60 +492,51 @@ func (m *RetryHistoryMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *RetryHistoryMutation) Op() Op {
+func (m *PipelineExecutionLogMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *RetryHistoryMutation) SetOp(op Op) {
+func (m *PipelineExecutionLogMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (RetryHistory).
-func (m *RetryHistoryMutation) Type() string {
+// Type returns the node type of this mutation (PipelineExecutionLog).
+func (m *PipelineExecutionLogMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *RetryHistoryMutation) Fields() []string {
-	fields := make([]string, 0, 12)
-	if m.created_at != nil {
-		fields = append(fields, retryhistory.FieldCreatedAt)
-	}
+func (m *PipelineExecutionLogMutation) Fields() []string {
+	fields := make([]string, 0, 9)
 	if m.env != nil {
-		fields = append(fields, retryhistory.FieldEnv)
+		fields = append(fields, pipelineexecutionlog.FieldEnv)
 	}
-	if m.project != nil {
-		fields = append(fields, retryhistory.FieldProject)
-	}
-	if m.project_url != nil {
-		fields = append(fields, retryhistory.FieldProjectURL)
-	}
-	if m.ref != nil {
-		fields = append(fields, retryhistory.FieldRef)
+	if m._type != nil {
+		fields = append(fields, pipelineexecutionlog.FieldType)
 	}
 	if m.event_type != nil {
-		fields = append(fields, retryhistory.FieldEventType)
-	}
-	if m.commit_id != nil {
-		fields = append(fields, retryhistory.FieldCommitID)
-	}
-	if m.committer != nil {
-		fields = append(fields, retryhistory.FieldCommitter)
-	}
-	if m.commit_message != nil {
-		fields = append(fields, retryhistory.FieldCommitMessage)
-	}
-	if m.commit_url != nil {
-		fields = append(fields, retryhistory.FieldCommitURL)
+		fields = append(fields, pipelineexecutionlog.FieldEventType)
 	}
 	if m.pipeline_name != nil {
-		fields = append(fields, retryhistory.FieldPipelineName)
+		fields = append(fields, pipelineexecutionlog.FieldPipelineName)
 	}
-	if m.pipeline_type != nil {
-		fields = append(fields, retryhistory.FieldPipelineType)
+	if m.username_email != nil {
+		fields = append(fields, pipelineexecutionlog.FieldUsernameEmail)
+	}
+	if m.commit_id != nil {
+		fields = append(fields, pipelineexecutionlog.FieldCommitID)
+	}
+	if m.project_url != nil {
+		fields = append(fields, pipelineexecutionlog.FieldProjectURL)
+	}
+	if m.status != nil {
+		fields = append(fields, pipelineexecutionlog.FieldStatus)
+	}
+	if m.created_at != nil {
+		fields = append(fields, pipelineexecutionlog.FieldCreatedAt)
 	}
 	return fields
 }
@@ -664,32 +544,26 @@ func (m *RetryHistoryMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *RetryHistoryMutation) Field(name string) (ent.Value, bool) {
+func (m *PipelineExecutionLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case retryhistory.FieldCreatedAt:
-		return m.CreatedAt()
-	case retryhistory.FieldEnv:
+	case pipelineexecutionlog.FieldEnv:
 		return m.Env()
-	case retryhistory.FieldProject:
-		return m.Project()
-	case retryhistory.FieldProjectURL:
-		return m.ProjectURL()
-	case retryhistory.FieldRef:
-		return m.Ref()
-	case retryhistory.FieldEventType:
+	case pipelineexecutionlog.FieldType:
+		return m.GetType()
+	case pipelineexecutionlog.FieldEventType:
 		return m.EventType()
-	case retryhistory.FieldCommitID:
-		return m.CommitID()
-	case retryhistory.FieldCommitter:
-		return m.Committer()
-	case retryhistory.FieldCommitMessage:
-		return m.CommitMessage()
-	case retryhistory.FieldCommitURL:
-		return m.CommitURL()
-	case retryhistory.FieldPipelineName:
+	case pipelineexecutionlog.FieldPipelineName:
 		return m.PipelineName()
-	case retryhistory.FieldPipelineType:
-		return m.PipelineType()
+	case pipelineexecutionlog.FieldUsernameEmail:
+		return m.UsernameEmail()
+	case pipelineexecutionlog.FieldCommitID:
+		return m.CommitID()
+	case pipelineexecutionlog.FieldProjectURL:
+		return m.ProjectURL()
+	case pipelineexecutionlog.FieldStatus:
+		return m.Status()
+	case pipelineexecutionlog.FieldCreatedAt:
+		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -697,258 +571,222 @@ func (m *RetryHistoryMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *RetryHistoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *PipelineExecutionLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case retryhistory.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case retryhistory.FieldEnv:
+	case pipelineexecutionlog.FieldEnv:
 		return m.OldEnv(ctx)
-	case retryhistory.FieldProject:
-		return m.OldProject(ctx)
-	case retryhistory.FieldProjectURL:
-		return m.OldProjectURL(ctx)
-	case retryhistory.FieldRef:
-		return m.OldRef(ctx)
-	case retryhistory.FieldEventType:
+	case pipelineexecutionlog.FieldType:
+		return m.OldType(ctx)
+	case pipelineexecutionlog.FieldEventType:
 		return m.OldEventType(ctx)
-	case retryhistory.FieldCommitID:
-		return m.OldCommitID(ctx)
-	case retryhistory.FieldCommitter:
-		return m.OldCommitter(ctx)
-	case retryhistory.FieldCommitMessage:
-		return m.OldCommitMessage(ctx)
-	case retryhistory.FieldCommitURL:
-		return m.OldCommitURL(ctx)
-	case retryhistory.FieldPipelineName:
+	case pipelineexecutionlog.FieldPipelineName:
 		return m.OldPipelineName(ctx)
-	case retryhistory.FieldPipelineType:
-		return m.OldPipelineType(ctx)
+	case pipelineexecutionlog.FieldUsernameEmail:
+		return m.OldUsernameEmail(ctx)
+	case pipelineexecutionlog.FieldCommitID:
+		return m.OldCommitID(ctx)
+	case pipelineexecutionlog.FieldProjectURL:
+		return m.OldProjectURL(ctx)
+	case pipelineexecutionlog.FieldStatus:
+		return m.OldStatus(ctx)
+	case pipelineexecutionlog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown RetryHistory field %s", name)
+	return nil, fmt.Errorf("unknown PipelineExecutionLog field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *RetryHistoryMutation) SetField(name string, value ent.Value) error {
+func (m *PipelineExecutionLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case retryhistory.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case retryhistory.FieldEnv:
+	case pipelineexecutionlog.FieldEnv:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnv(v)
 		return nil
-	case retryhistory.FieldProject:
+	case pipelineexecutionlog.FieldType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetProject(v)
+		m.SetType(v)
 		return nil
-	case retryhistory.FieldProjectURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectURL(v)
-		return nil
-	case retryhistory.FieldRef:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRef(v)
-		return nil
-	case retryhistory.FieldEventType:
+	case pipelineexecutionlog.FieldEventType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEventType(v)
 		return nil
-	case retryhistory.FieldCommitID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCommitID(v)
-		return nil
-	case retryhistory.FieldCommitter:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCommitter(v)
-		return nil
-	case retryhistory.FieldCommitMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCommitMessage(v)
-		return nil
-	case retryhistory.FieldCommitURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCommitURL(v)
-		return nil
-	case retryhistory.FieldPipelineName:
+	case pipelineexecutionlog.FieldPipelineName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPipelineName(v)
 		return nil
-	case retryhistory.FieldPipelineType:
+	case pipelineexecutionlog.FieldUsernameEmail:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetPipelineType(v)
+		m.SetUsernameEmail(v)
+		return nil
+	case pipelineexecutionlog.FieldCommitID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommitID(v)
+		return nil
+	case pipelineexecutionlog.FieldProjectURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectURL(v)
+		return nil
+	case pipelineexecutionlog.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case pipelineexecutionlog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown RetryHistory field %s", name)
+	return fmt.Errorf("unknown PipelineExecutionLog field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *RetryHistoryMutation) AddedFields() []string {
+func (m *PipelineExecutionLogMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *RetryHistoryMutation) AddedField(name string) (ent.Value, bool) {
+func (m *PipelineExecutionLogMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *RetryHistoryMutation) AddField(name string, value ent.Value) error {
+func (m *PipelineExecutionLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown RetryHistory numeric field %s", name)
+	return fmt.Errorf("unknown PipelineExecutionLog numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *RetryHistoryMutation) ClearedFields() []string {
+func (m *PipelineExecutionLogMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *RetryHistoryMutation) FieldCleared(name string) bool {
+func (m *PipelineExecutionLogMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *RetryHistoryMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown RetryHistory nullable field %s", name)
+func (m *PipelineExecutionLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PipelineExecutionLog nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *RetryHistoryMutation) ResetField(name string) error {
+func (m *PipelineExecutionLogMutation) ResetField(name string) error {
 	switch name {
-	case retryhistory.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case retryhistory.FieldEnv:
+	case pipelineexecutionlog.FieldEnv:
 		m.ResetEnv()
 		return nil
-	case retryhistory.FieldProject:
-		m.ResetProject()
+	case pipelineexecutionlog.FieldType:
+		m.ResetType()
 		return nil
-	case retryhistory.FieldProjectURL:
-		m.ResetProjectURL()
-		return nil
-	case retryhistory.FieldRef:
-		m.ResetRef()
-		return nil
-	case retryhistory.FieldEventType:
+	case pipelineexecutionlog.FieldEventType:
 		m.ResetEventType()
 		return nil
-	case retryhistory.FieldCommitID:
-		m.ResetCommitID()
-		return nil
-	case retryhistory.FieldCommitter:
-		m.ResetCommitter()
-		return nil
-	case retryhistory.FieldCommitMessage:
-		m.ResetCommitMessage()
-		return nil
-	case retryhistory.FieldCommitURL:
-		m.ResetCommitURL()
-		return nil
-	case retryhistory.FieldPipelineName:
+	case pipelineexecutionlog.FieldPipelineName:
 		m.ResetPipelineName()
 		return nil
-	case retryhistory.FieldPipelineType:
-		m.ResetPipelineType()
+	case pipelineexecutionlog.FieldUsernameEmail:
+		m.ResetUsernameEmail()
+		return nil
+	case pipelineexecutionlog.FieldCommitID:
+		m.ResetCommitID()
+		return nil
+	case pipelineexecutionlog.FieldProjectURL:
+		m.ResetProjectURL()
+		return nil
+	case pipelineexecutionlog.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case pipelineexecutionlog.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown RetryHistory field %s", name)
+	return fmt.Errorf("unknown PipelineExecutionLog field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *RetryHistoryMutation) AddedEdges() []string {
+func (m *PipelineExecutionLogMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *RetryHistoryMutation) AddedIDs(name string) []ent.Value {
+func (m *PipelineExecutionLogMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *RetryHistoryMutation) RemovedEdges() []string {
+func (m *PipelineExecutionLogMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *RetryHistoryMutation) RemovedIDs(name string) []ent.Value {
+func (m *PipelineExecutionLogMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *RetryHistoryMutation) ClearedEdges() []string {
+func (m *PipelineExecutionLogMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *RetryHistoryMutation) EdgeCleared(name string) bool {
+func (m *PipelineExecutionLogMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *RetryHistoryMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown RetryHistory unique edge %s", name)
+func (m *PipelineExecutionLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PipelineExecutionLog unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *RetryHistoryMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown RetryHistory edge %s", name)
+func (m *PipelineExecutionLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PipelineExecutionLog edge %s", name)
 }

@@ -9,36 +9,33 @@ import (
 )
 
 var (
-	// RetryHistoryColumns holds the columns for the "retry_history" table.
-	RetryHistoryColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true, SchemaType: map[string]string{"mysql": "int"}},
-		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
+	// PipelineExecutionLogColumns holds the columns for the "pipeline_execution_log" table.
+	PipelineExecutionLogColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true, SchemaType: map[string]string{"mysql": "bigint"}},
 		{Name: "env", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "project", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "project_url", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(512)"}},
-		{Name: "ref", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(512)"}},
-		{Name: "event_type", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "commit_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "committer", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "commit_message", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"mysql": "text"}},
-		{Name: "commit_url", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(512)"}},
+		{Name: "type", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(50)"}},
+		{Name: "event_type", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(50)"}},
 		{Name: "pipeline_name", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
-		{Name: "pipeline_type", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
+		{Name: "username_email", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(512)"}},
+		{Name: "commit_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(255)"}},
+		{Name: "project_url", Type: field.TypeString, SchemaType: map[string]string{"mysql": "varchar(512)"}},
+		{Name: "status", Type: field.TypeString, Default: "unknown", SchemaType: map[string]string{"mysql": "varchar(20)"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
 	}
-	// RetryHistoryTable holds the schema information for the "retry_history" table.
-	RetryHistoryTable = &schema.Table{
-		Name:       "retry_history",
-		Columns:    RetryHistoryColumns,
-		PrimaryKey: []*schema.Column{RetryHistoryColumns[0]},
+	// PipelineExecutionLogTable holds the schema information for the "pipeline_execution_log" table.
+	PipelineExecutionLogTable = &schema.Table{
+		Name:       "pipeline_execution_log",
+		Columns:    PipelineExecutionLogColumns,
+		PrimaryKey: []*schema.Column{PipelineExecutionLogColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		RetryHistoryTable,
+		PipelineExecutionLogTable,
 	}
 )
 
 func init() {
-	RetryHistoryTable.Annotation = &entsql.Annotation{
-		Table: "retry_history",
+	PipelineExecutionLogTable.Annotation = &entsql.Annotation{
+		Table: "pipeline_execution_log",
 	}
 }

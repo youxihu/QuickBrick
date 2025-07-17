@@ -15,28 +15,28 @@ pipelines:
     type: frontend
     env: fe-beta
     event_type: push
-    script: /home/jenkins/execute/pc/beta/build-deploy.sh
+    script: /home/youxihu/mytest/QucikBrick/fe-beta.sh
 
   - name: bbx_Front_Online
     type: frontend
     env: fe-prod
     event_type: push
-    script: /home/jenkins/execute/pc/prod/build-prod.sh
+    script: /home/youxihu/mytest/QucikBrick/fe-prod.sh
 
   - name: bbx_bbz_OpenBeta_pipline
     type: backend
     env: be-beta
     event_type: push
-    script: /home/jenkins/execute/beta/beatenv_build/build-beta.sh
+    script: /home/youxihu/mytest/QucikBrick/be-beta.sh
 
   - name: bbx_bbz_Prod_pipline
     type: backend
     env: be-all-prod
     event_type: tag
-    script: /home/jenkins/execute/prod/prod_one_click/build-all-prod.sh
+    script: /home/youxihu/mytest/QucikBrick/be-tag.sh
 
   - name: bbx_bbz_OnlineAlone_pipline
     type: backend
     env: be-prod
     event_type: push
-    script: /home/jenkins/execute/prod/prodenv_build/build-prod.sh
+    script: /home/youxihu/mytest/QucikBrick/be-prod.sh

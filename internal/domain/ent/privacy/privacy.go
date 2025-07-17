@@ -111,28 +111,28 @@ func DenyMutationOperationRule(op ent.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
-// The RetryHistoryQueryRuleFunc type is an adapter to allow the use of ordinary
+// The PipelineExecutionLogQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
-type RetryHistoryQueryRuleFunc func(context.Context, *ent.RetryHistoryQuery) error
+type PipelineExecutionLogQueryRuleFunc func(context.Context, *ent.PipelineExecutionLogQuery) error
 
 // EvalQuery return f(ctx, q).
-func (f RetryHistoryQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.RetryHistoryQuery); ok {
+func (f PipelineExecutionLogQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PipelineExecutionLogQuery); ok {
 		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.RetryHistoryQuery", q)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.PipelineExecutionLogQuery", q)
 }
 
-// The RetryHistoryMutationRuleFunc type is an adapter to allow the use of ordinary
+// The PipelineExecutionLogMutationRuleFunc type is an adapter to allow the use of ordinary
 // functions as a mutation rule.
-type RetryHistoryMutationRuleFunc func(context.Context, *ent.RetryHistoryMutation) error
+type PipelineExecutionLogMutationRuleFunc func(context.Context, *ent.PipelineExecutionLogMutation) error
 
 // EvalMutation calls f(ctx, m).
-func (f RetryHistoryMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.RetryHistoryMutation); ok {
+func (f PipelineExecutionLogMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.PipelineExecutionLogMutation); ok {
 		return f(ctx, m)
 	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.RetryHistoryMutation", m)
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.PipelineExecutionLogMutation", m)
 }
 
 type (
@@ -170,7 +170,7 @@ var _ QueryMutationRule = FilterFunc(nil)
 
 func queryFilter(q ent.Query) (Filter, error) {
 	switch q := q.(type) {
-	case *ent.RetryHistoryQuery:
+	case *ent.PipelineExecutionLogQuery:
 		return q.Filter(), nil
 	default:
 		return nil, Denyf("ent/privacy: unexpected query type %T for query filter", q)
@@ -179,7 +179,7 @@ func queryFilter(q ent.Query) (Filter, error) {
 
 func mutationFilter(m ent.Mutation) (Filter, error) {
 	switch m := m.(type) {
-	case *ent.RetryHistoryMutation:
+	case *ent.PipelineExecutionLogMutation:
 		return m.Filter(), nil
 	default:
 		return nil, Denyf("ent/privacy: unexpected mutation type %T for mutation filter", m)

@@ -25,27 +25,30 @@ type Pipeline struct {
 
 // PushEvent 完整的 GitLab Push Hook 结构
 type PushEvent struct {
-	ObjectKind        string `json:"object_kind"`
-	EventName         string `json:"event_name"` // "push"
-	Ref               string `json:"ref"`        // branch or tag
-	TotalCommitsCount int    `json:"total_commits_count"`
+	ObjectKind        string     `json:"object_kind"`
+	EventName         string     `json:"event_name"` // "push"
+	Ref               string     `json:"ref"`        // branch or tag
+	TotalCommitsCount int        `json:"total_commits_count"`
+	UserEmail         string     `json:"user_email"`
+	UserName          string     `json:"user_name"`
+	Project           *Project   `json:"project"`
+	Commits           []*Commits `json:"commits"`
+}
 
-	UserEmail string `json:"user_email"`
-	UserName  string `json:"user_name"`
+type Project struct {
+	Name string `json:"name"`
+	URL  string `json:"web_url"`
+}
 
-	Project struct {
-		Name string `json:"name"`
-		URL  string `json:"web_url"`
-	} `json:"project"`
+type Author struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
 
-	Commits []struct {
-		ID      string `json:"id"`
-		Message string `json:"message"`
-		Author  struct {
-			Name  string `json:"name"`
-			Email string `json:"email"`
-		} `json:"author"`
-		Timestamp string `json:"timestamp"`
-		URL       string `json:"url"`
-	} `json:"commits"`
+type Commits struct {
+	ID        string  `json:"id"`
+	Message   string  `json:"message"`
+	Author    *Author `json:"author"`
+	Timestamp string  `json:"timestamp"`
+	URL       string  `json:"url"`
 }

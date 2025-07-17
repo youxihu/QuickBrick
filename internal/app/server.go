@@ -36,7 +36,7 @@ func RunServer() {
 	defer entClient.Close()
 
 	// 初始化服务
-	historyRepo := repository.NewEntRetryHistoryRepository(entClient)
+	historyRepo := repository.NewEntPipelineExecutionRepository(entClient)
 	pipelineHistorySvc := service.NewPipelineHistoryService(historyRepo)
 	buildRetrySvc := service.NewBuildRetryService(historyRepo)
 	handler.BuildService = buildRetrySvc
@@ -51,14 +51,29 @@ func RunServer() {
 	r.POST("/webhook/fe-full-chain", handler.Adapt(handler.FrontendWebhookHandler, pipelineHistorySvc))
 	r.POST("/webhook/be-full-chain", handler.Adapt(handler.BackendWebhookHandler, pipelineHistorySvc))
 
-	// 替换原有 retry 路由注册
+	// app.RunServer()
+
 	r.POST("/webhook/retry", func(c *gin.Context) {
-		c.Set("pipelineHistorySvc", pipelineHistorySvc)
-		handler.RetryHandler(c)
+		// 使用 c.Query 获取 Query 参数
+		env := c.Query("env")
+		commitID := c.Query("commit_id")
+		pipelineName := c.Query("pipeline_name")
+
+		if env == "" || commitID == "" || pipelineName == "" {
+			c.JSON(400, gin.H{"error": "缺少必要参数: env, commit_id, pipeline_name"})
+			return
+		}
+
+		buildRetrySvc := service.NewBuildRetryService(historyRepo)
+		buildRetrySvc.RetryBuildAsync(c.Request.Context(), env, commitID, pipelineName)
+
+		c.JSON(200, gin.H{
+			"message": "重试请求已接收，正在后台执行...",
+		})
 	})
 
 	addr := ":" + config.Cfg.Port
-	fmt.Printf("启动服务，监听地址: %s\n", addr) // 使用标准输出打印启动信息
+	fmt.Printf("启动服务，监听地址: %s\n", addr)
 
 	if err := r.Run(addr); err != nil {
 		panic(fmt.Sprintf("启动服务失败: %v", err))

@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"QuickBrick/internal/domain/ent/retryhistory"
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -16,27 +16,24 @@ var schemaGraph = func() *sqlgraph.Schema {
 	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 1)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
-			Table:   retryhistory.Table,
-			Columns: retryhistory.Columns,
+			Table:   pipelineexecutionlog.Table,
+			Columns: pipelineexecutionlog.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt64,
-				Column: retryhistory.FieldID,
+				Column: pipelineexecutionlog.FieldID,
 			},
 		},
-		Type: "RetryHistory",
+		Type: "PipelineExecutionLog",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			retryhistory.FieldCreatedAt:     {Type: field.TypeTime, Column: retryhistory.FieldCreatedAt},
-			retryhistory.FieldEnv:           {Type: field.TypeString, Column: retryhistory.FieldEnv},
-			retryhistory.FieldProject:       {Type: field.TypeString, Column: retryhistory.FieldProject},
-			retryhistory.FieldProjectURL:    {Type: field.TypeString, Column: retryhistory.FieldProjectURL},
-			retryhistory.FieldRef:           {Type: field.TypeString, Column: retryhistory.FieldRef},
-			retryhistory.FieldEventType:     {Type: field.TypeString, Column: retryhistory.FieldEventType},
-			retryhistory.FieldCommitID:      {Type: field.TypeString, Column: retryhistory.FieldCommitID},
-			retryhistory.FieldCommitter:     {Type: field.TypeString, Column: retryhistory.FieldCommitter},
-			retryhistory.FieldCommitMessage: {Type: field.TypeString, Column: retryhistory.FieldCommitMessage},
-			retryhistory.FieldCommitURL:     {Type: field.TypeString, Column: retryhistory.FieldCommitURL},
-			retryhistory.FieldPipelineName:  {Type: field.TypeString, Column: retryhistory.FieldPipelineName},
-			retryhistory.FieldPipelineType:  {Type: field.TypeString, Column: retryhistory.FieldPipelineType},
+			pipelineexecutionlog.FieldEnv:           {Type: field.TypeString, Column: pipelineexecutionlog.FieldEnv},
+			pipelineexecutionlog.FieldType:          {Type: field.TypeString, Column: pipelineexecutionlog.FieldType},
+			pipelineexecutionlog.FieldEventType:     {Type: field.TypeString, Column: pipelineexecutionlog.FieldEventType},
+			pipelineexecutionlog.FieldPipelineName:  {Type: field.TypeString, Column: pipelineexecutionlog.FieldPipelineName},
+			pipelineexecutionlog.FieldUsernameEmail: {Type: field.TypeString, Column: pipelineexecutionlog.FieldUsernameEmail},
+			pipelineexecutionlog.FieldCommitID:      {Type: field.TypeString, Column: pipelineexecutionlog.FieldCommitID},
+			pipelineexecutionlog.FieldProjectURL:    {Type: field.TypeString, Column: pipelineexecutionlog.FieldProjectURL},
+			pipelineexecutionlog.FieldStatus:        {Type: field.TypeString, Column: pipelineexecutionlog.FieldStatus},
+			pipelineexecutionlog.FieldCreatedAt:     {Type: field.TypeTime, Column: pipelineexecutionlog.FieldCreatedAt},
 		},
 	}
 	return graph
@@ -49,33 +46,33 @@ type predicateAdder interface {
 }
 
 // addPredicate implements the predicateAdder interface.
-func (rhq *RetryHistoryQuery) addPredicate(pred func(s *sql.Selector)) {
-	rhq.predicates = append(rhq.predicates, pred)
+func (pelq *PipelineExecutionLogQuery) addPredicate(pred func(s *sql.Selector)) {
+	pelq.predicates = append(pelq.predicates, pred)
 }
 
-// Filter returns a Filter implementation to apply filters on the RetryHistoryQuery builder.
-func (rhq *RetryHistoryQuery) Filter() *RetryHistoryFilter {
-	return &RetryHistoryFilter{config: rhq.config, predicateAdder: rhq}
+// Filter returns a Filter implementation to apply filters on the PipelineExecutionLogQuery builder.
+func (pelq *PipelineExecutionLogQuery) Filter() *PipelineExecutionLogFilter {
+	return &PipelineExecutionLogFilter{config: pelq.config, predicateAdder: pelq}
 }
 
 // addPredicate implements the predicateAdder interface.
-func (m *RetryHistoryMutation) addPredicate(pred func(s *sql.Selector)) {
+func (m *PipelineExecutionLogMutation) addPredicate(pred func(s *sql.Selector)) {
 	m.predicates = append(m.predicates, pred)
 }
 
-// Filter returns an entql.Where implementation to apply filters on the RetryHistoryMutation builder.
-func (m *RetryHistoryMutation) Filter() *RetryHistoryFilter {
-	return &RetryHistoryFilter{config: m.config, predicateAdder: m}
+// Filter returns an entql.Where implementation to apply filters on the PipelineExecutionLogMutation builder.
+func (m *PipelineExecutionLogMutation) Filter() *PipelineExecutionLogFilter {
+	return &PipelineExecutionLogFilter{config: m.config, predicateAdder: m}
 }
 
-// RetryHistoryFilter provides a generic filtering capability at runtime for RetryHistoryQuery.
-type RetryHistoryFilter struct {
+// PipelineExecutionLogFilter provides a generic filtering capability at runtime for PipelineExecutionLogQuery.
+type PipelineExecutionLogFilter struct {
 	predicateAdder
 	config
 }
 
 // Where applies the entql predicate on the query filter.
-func (f *RetryHistoryFilter) Where(p entql.P) {
+func (f *PipelineExecutionLogFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
 		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
 			s.AddError(err)
@@ -84,66 +81,51 @@ func (f *RetryHistoryFilter) Where(p entql.P) {
 }
 
 // WhereID applies the entql int64 predicate on the id field.
-func (f *RetryHistoryFilter) WhereID(p entql.Int64P) {
-	f.Where(p.Field(retryhistory.FieldID))
-}
-
-// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
-func (f *RetryHistoryFilter) WhereCreatedAt(p entql.TimeP) {
-	f.Where(p.Field(retryhistory.FieldCreatedAt))
+func (f *PipelineExecutionLogFilter) WhereID(p entql.Int64P) {
+	f.Where(p.Field(pipelineexecutionlog.FieldID))
 }
 
 // WhereEnv applies the entql string predicate on the env field.
-func (f *RetryHistoryFilter) WhereEnv(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldEnv))
+func (f *PipelineExecutionLogFilter) WhereEnv(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldEnv))
 }
 
-// WhereProject applies the entql string predicate on the project field.
-func (f *RetryHistoryFilter) WhereProject(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldProject))
-}
-
-// WhereProjectURL applies the entql string predicate on the project_url field.
-func (f *RetryHistoryFilter) WhereProjectURL(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldProjectURL))
-}
-
-// WhereRef applies the entql string predicate on the ref field.
-func (f *RetryHistoryFilter) WhereRef(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldRef))
+// WhereType applies the entql string predicate on the type field.
+func (f *PipelineExecutionLogFilter) WhereType(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldType))
 }
 
 // WhereEventType applies the entql string predicate on the event_type field.
-func (f *RetryHistoryFilter) WhereEventType(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldEventType))
-}
-
-// WhereCommitID applies the entql string predicate on the commit_id field.
-func (f *RetryHistoryFilter) WhereCommitID(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldCommitID))
-}
-
-// WhereCommitter applies the entql string predicate on the committer field.
-func (f *RetryHistoryFilter) WhereCommitter(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldCommitter))
-}
-
-// WhereCommitMessage applies the entql string predicate on the commit_message field.
-func (f *RetryHistoryFilter) WhereCommitMessage(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldCommitMessage))
-}
-
-// WhereCommitURL applies the entql string predicate on the commit_url field.
-func (f *RetryHistoryFilter) WhereCommitURL(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldCommitURL))
+func (f *PipelineExecutionLogFilter) WhereEventType(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldEventType))
 }
 
 // WherePipelineName applies the entql string predicate on the pipeline_name field.
-func (f *RetryHistoryFilter) WherePipelineName(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldPipelineName))
+func (f *PipelineExecutionLogFilter) WherePipelineName(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldPipelineName))
 }
 
-// WherePipelineType applies the entql string predicate on the pipeline_type field.
-func (f *RetryHistoryFilter) WherePipelineType(p entql.StringP) {
-	f.Where(p.Field(retryhistory.FieldPipelineType))
+// WhereUsernameEmail applies the entql string predicate on the username_email field.
+func (f *PipelineExecutionLogFilter) WhereUsernameEmail(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldUsernameEmail))
+}
+
+// WhereCommitID applies the entql string predicate on the commit_id field.
+func (f *PipelineExecutionLogFilter) WhereCommitID(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldCommitID))
+}
+
+// WhereProjectURL applies the entql string predicate on the project_url field.
+func (f *PipelineExecutionLogFilter) WhereProjectURL(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldProjectURL))
+}
+
+// WhereStatus applies the entql string predicate on the status field.
+func (f *PipelineExecutionLogFilter) WhereStatus(p entql.StringP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldStatus))
+}
+
+// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+func (f *PipelineExecutionLogFilter) WhereCreatedAt(p entql.TimeP) {
+	f.Where(p.Field(pipelineexecutionlog.FieldCreatedAt))
 }

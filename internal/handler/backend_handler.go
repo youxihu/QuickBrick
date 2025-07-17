@@ -2,6 +2,7 @@ package handler
 
 import (
 	"QuickBrick/internal/config"
+	"context"
 	"encoding/json"
 	"go.uber.org/zap"
 	"net/http"
@@ -20,7 +21,7 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 		logger.Logger.Warn("invalid token",
 			zap.Any("msg", map[string]interface{}{
 				"action": "invalid token",
-				"token": gitlabToken,
+				"token":  gitlabToken,
 			}),
 		)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
@@ -32,7 +33,7 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 		logger.Logger.Error("read request body failed",
 			zap.Any("msg", map[string]interface{}{
 				"action": "read request body failed",
-				"error": err.Error(),
+				"error":  err.Error(),
 			}),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "read body failed"})
@@ -45,7 +46,7 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 		logger.Logger.Error("json parse failed",
 			zap.Any("msg", map[string]interface{}{
 				"action": "json parse failed",
-				"error": err.Error(),
+				"error":  err.Error(),
 			}),
 		)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
@@ -77,7 +78,7 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 		logger.Logger.Error("webhook event handle failed",
 			zap.Any("msg", map[string]interface{}{
 				"action": "webhook event handle failed",
-				"error": err.Error(),
+				"error":  err.Error(),
 			}),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "处理 webhook 事件失败"})
@@ -90,6 +91,9 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 	}
 
 	// 下沉到 service 层统一处理
-	results, _ := webhookService.TriggerAndRecordPipelines(pushEvent, triggeredPipelines, historySvc, c.Request.Context())
-	c.JSON(http.StatusOK, gin.H{"status": "success", "results": results})
+	// 调用异步方法，无需等待
+	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background())
+
+	// 立即返回成功响应
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "pipelines triggered asynchronously"})
 }

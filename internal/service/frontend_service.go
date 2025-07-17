@@ -81,21 +81,30 @@ func (s *FrontendWebhookService) HandlePushEvent(event domain.PushEvent) ([]*Fro
 	return triggered, nil
 }
 
-// TriggerAndRecordPipelines 负责执行脚本、写日志、保存历史
-func (s *FrontendWebhookService) TriggerAndRecordPipelines(
+func (s *FrontendWebhookService) TriggerAndRecordPipelinesAsync(
 	pushEvent domain.PushEvent,
 	triggeredPipelines []*FrontendPipelineContext,
 	historySvc *PipelineHistoryService,
 	ctx context.Context,
-) ([]map[string]interface{}, error) {
-	results := make([]map[string]interface{}, 0, len(triggeredPipelines))
+) {
+	go func() {
+		s.triggerAndRecordPipelinesInternal(pushEvent, triggeredPipelines, historySvc, ctx)
+	}()
+}
+func (s *FrontendWebhookService) triggerAndRecordPipelinesInternal(
+	pushEvent domain.PushEvent,
+	triggeredPipelines []*FrontendPipelineContext,
+	historySvc *PipelineHistoryService,
+	ctx context.Context,
+) {
+
 	for _, item := range triggeredPipelines {
 		p := item.Pipeline
 		env := item.RuntimeEnv
 
-		logger.Logger.Info("Detected front-end build command, executing script",
+		logger.Logger.Info("frontend build command detected, executing script",
 			zap.Any("msg", map[string]interface{}{
-				"action":   "Detected front-end build command, executing script",
+				"action":   "frontend build command detected, executing script",
 				"script":   p.Script,
 				"env":      env,
 				"pipeline": p.Name,
@@ -105,25 +114,24 @@ func (s *FrontendWebhookService) TriggerAndRecordPipelines(
 		stdout, stderr, err := infra.ExecuteScriptAndGetOutputError(p.Script)
 		logger.WriteTriggerLogToFile(pushEvent, env, p.Script, stdout+"\n"+stderr)
 
+		status := "success"
 		if err != nil {
-			logger.Logger.Error("script execution failed",
-				zap.Any("msg", map[string]interface{}{
-					"action":   "script execution failed",
-					"script":   p.Script,
-					"pipeline": p.Name,
-					"env":      env,
-					"error":    err.Error(),
-				}),
-			)
+			status = "failure"
 		}
 
-		// 记录 RetryHistory
-		histErr := historySvc.SaveRetryHistory(ctx, &pushEvent, &domain.Pipeline{
-			Name:      p.Name,
-			Type:      p.Type,
-			EventType: p.EventType,
-			Script:    p.Script,
-		}, env)
+		histErr := historySvc.SavePipelineExecution(
+			ctx,
+			&pushEvent,
+			&domain.Pipeline{
+				Name:      p.Name,
+				Type:      p.Type,
+				EventType: p.EventType,
+				Script:    p.Script,
+			},
+			env,
+			status,
+		)
+
 		if histErr != nil {
 			logger.Logger.Warn("save build history failed",
 				zap.Any("msg", map[string]interface{}{
@@ -134,15 +142,5 @@ func (s *FrontendWebhookService) TriggerAndRecordPipelines(
 				}),
 			)
 		}
-
-		results = append(results, map[string]interface{}{
-			"pipeline":    p.Name,
-			"env":         env,
-			"stdout":      stdout,
-			"stderr":      stderr,
-			"err":         err,
-			"history_err": histErr,
-		})
 	}
-	return results, nil
 }

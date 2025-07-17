@@ -8,16 +8,16 @@ import (
 	"fmt"
 )
 
-// The RetryHistoryFunc type is an adapter to allow the use of ordinary
-// function as RetryHistory mutator.
-type RetryHistoryFunc func(context.Context, *ent.RetryHistoryMutation) (ent.Value, error)
+// The PipelineExecutionLogFunc type is an adapter to allow the use of ordinary
+// function as PipelineExecutionLog mutator.
+type PipelineExecutionLogFunc func(context.Context, *ent.PipelineExecutionLogMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f RetryHistoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.RetryHistoryMutation); ok {
+func (f PipelineExecutionLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PipelineExecutionLogMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RetryHistoryMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PipelineExecutionLogMutation", m)
 }
 
 // Condition is a hook condition function.

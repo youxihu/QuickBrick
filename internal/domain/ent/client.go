@@ -11,7 +11,7 @@ import (
 
 	"QuickBrick/internal/domain/ent/migrate"
 
-	"QuickBrick/internal/domain/ent/retryhistory"
+	"QuickBrick/internal/domain/ent/pipelineexecutionlog"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -23,8 +23,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// RetryHistory is the client for interacting with the RetryHistory builders.
-	RetryHistory *RetryHistoryClient
+	// PipelineExecutionLog is the client for interacting with the PipelineExecutionLog builders.
+	PipelineExecutionLog *PipelineExecutionLogClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -36,7 +36,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.RetryHistory = NewRetryHistoryClient(c.config)
+	c.PipelineExecutionLog = NewPipelineExecutionLogClient(c.config)
 }
 
 type (
@@ -127,9 +127,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		RetryHistory: NewRetryHistoryClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		PipelineExecutionLog: NewPipelineExecutionLogClient(cfg),
 	}, nil
 }
 
@@ -147,16 +147,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		RetryHistory: NewRetryHistoryClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		PipelineExecutionLog: NewPipelineExecutionLogClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		RetryHistory.
+//		PipelineExecutionLog.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -178,126 +178,126 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.RetryHistory.Use(hooks...)
+	c.PipelineExecutionLog.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.RetryHistory.Intercept(interceptors...)
+	c.PipelineExecutionLog.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *RetryHistoryMutation:
-		return c.RetryHistory.mutate(ctx, m)
+	case *PipelineExecutionLogMutation:
+		return c.PipelineExecutionLog.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// RetryHistoryClient is a client for the RetryHistory schema.
-type RetryHistoryClient struct {
+// PipelineExecutionLogClient is a client for the PipelineExecutionLog schema.
+type PipelineExecutionLogClient struct {
 	config
 }
 
-// NewRetryHistoryClient returns a client for the RetryHistory from the given config.
-func NewRetryHistoryClient(c config) *RetryHistoryClient {
-	return &RetryHistoryClient{config: c}
+// NewPipelineExecutionLogClient returns a client for the PipelineExecutionLog from the given config.
+func NewPipelineExecutionLogClient(c config) *PipelineExecutionLogClient {
+	return &PipelineExecutionLogClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `retryhistory.Hooks(f(g(h())))`.
-func (c *RetryHistoryClient) Use(hooks ...Hook) {
-	c.hooks.RetryHistory = append(c.hooks.RetryHistory, hooks...)
+// A call to `Use(f, g, h)` equals to `pipelineexecutionlog.Hooks(f(g(h())))`.
+func (c *PipelineExecutionLogClient) Use(hooks ...Hook) {
+	c.hooks.PipelineExecutionLog = append(c.hooks.PipelineExecutionLog, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `retryhistory.Intercept(f(g(h())))`.
-func (c *RetryHistoryClient) Intercept(interceptors ...Interceptor) {
-	c.inters.RetryHistory = append(c.inters.RetryHistory, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `pipelineexecutionlog.Intercept(f(g(h())))`.
+func (c *PipelineExecutionLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PipelineExecutionLog = append(c.inters.PipelineExecutionLog, interceptors...)
 }
 
-// Create returns a builder for creating a RetryHistory entity.
-func (c *RetryHistoryClient) Create() *RetryHistoryCreate {
-	mutation := newRetryHistoryMutation(c.config, OpCreate)
-	return &RetryHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a PipelineExecutionLog entity.
+func (c *PipelineExecutionLogClient) Create() *PipelineExecutionLogCreate {
+	mutation := newPipelineExecutionLogMutation(c.config, OpCreate)
+	return &PipelineExecutionLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of RetryHistory entities.
-func (c *RetryHistoryClient) CreateBulk(builders ...*RetryHistoryCreate) *RetryHistoryCreateBulk {
-	return &RetryHistoryCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of PipelineExecutionLog entities.
+func (c *PipelineExecutionLogClient) CreateBulk(builders ...*PipelineExecutionLogCreate) *PipelineExecutionLogCreateBulk {
+	return &PipelineExecutionLogCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *RetryHistoryClient) MapCreateBulk(slice any, setFunc func(*RetryHistoryCreate, int)) *RetryHistoryCreateBulk {
+func (c *PipelineExecutionLogClient) MapCreateBulk(slice any, setFunc func(*PipelineExecutionLogCreate, int)) *PipelineExecutionLogCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &RetryHistoryCreateBulk{err: fmt.Errorf("calling to RetryHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &PipelineExecutionLogCreateBulk{err: fmt.Errorf("calling to PipelineExecutionLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*RetryHistoryCreate, rv.Len())
+	builders := make([]*PipelineExecutionLogCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &RetryHistoryCreateBulk{config: c.config, builders: builders}
+	return &PipelineExecutionLogCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for RetryHistory.
-func (c *RetryHistoryClient) Update() *RetryHistoryUpdate {
-	mutation := newRetryHistoryMutation(c.config, OpUpdate)
-	return &RetryHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for PipelineExecutionLog.
+func (c *PipelineExecutionLogClient) Update() *PipelineExecutionLogUpdate {
+	mutation := newPipelineExecutionLogMutation(c.config, OpUpdate)
+	return &PipelineExecutionLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *RetryHistoryClient) UpdateOne(rh *RetryHistory) *RetryHistoryUpdateOne {
-	mutation := newRetryHistoryMutation(c.config, OpUpdateOne, withRetryHistory(rh))
-	return &RetryHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *PipelineExecutionLogClient) UpdateOne(pel *PipelineExecutionLog) *PipelineExecutionLogUpdateOne {
+	mutation := newPipelineExecutionLogMutation(c.config, OpUpdateOne, withPipelineExecutionLog(pel))
+	return &PipelineExecutionLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RetryHistoryClient) UpdateOneID(id int64) *RetryHistoryUpdateOne {
-	mutation := newRetryHistoryMutation(c.config, OpUpdateOne, withRetryHistoryID(id))
-	return &RetryHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *PipelineExecutionLogClient) UpdateOneID(id int64) *PipelineExecutionLogUpdateOne {
+	mutation := newPipelineExecutionLogMutation(c.config, OpUpdateOne, withPipelineExecutionLogID(id))
+	return &PipelineExecutionLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for RetryHistory.
-func (c *RetryHistoryClient) Delete() *RetryHistoryDelete {
-	mutation := newRetryHistoryMutation(c.config, OpDelete)
-	return &RetryHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for PipelineExecutionLog.
+func (c *PipelineExecutionLogClient) Delete() *PipelineExecutionLogDelete {
+	mutation := newPipelineExecutionLogMutation(c.config, OpDelete)
+	return &PipelineExecutionLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *RetryHistoryClient) DeleteOne(rh *RetryHistory) *RetryHistoryDeleteOne {
-	return c.DeleteOneID(rh.ID)
+func (c *PipelineExecutionLogClient) DeleteOne(pel *PipelineExecutionLog) *PipelineExecutionLogDeleteOne {
+	return c.DeleteOneID(pel.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RetryHistoryClient) DeleteOneID(id int64) *RetryHistoryDeleteOne {
-	builder := c.Delete().Where(retryhistory.ID(id))
+func (c *PipelineExecutionLogClient) DeleteOneID(id int64) *PipelineExecutionLogDeleteOne {
+	builder := c.Delete().Where(pipelineexecutionlog.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &RetryHistoryDeleteOne{builder}
+	return &PipelineExecutionLogDeleteOne{builder}
 }
 
-// Query returns a query builder for RetryHistory.
-func (c *RetryHistoryClient) Query() *RetryHistoryQuery {
-	return &RetryHistoryQuery{
+// Query returns a query builder for PipelineExecutionLog.
+func (c *PipelineExecutionLogClient) Query() *PipelineExecutionLogQuery {
+	return &PipelineExecutionLogQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeRetryHistory},
+		ctx:    &QueryContext{Type: TypePipelineExecutionLog},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a RetryHistory entity by its id.
-func (c *RetryHistoryClient) Get(ctx context.Context, id int64) (*RetryHistory, error) {
-	return c.Query().Where(retryhistory.ID(id)).Only(ctx)
+// Get returns a PipelineExecutionLog entity by its id.
+func (c *PipelineExecutionLogClient) Get(ctx context.Context, id int64) (*PipelineExecutionLog, error) {
+	return c.Query().Where(pipelineexecutionlog.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RetryHistoryClient) GetX(ctx context.Context, id int64) *RetryHistory {
+func (c *PipelineExecutionLogClient) GetX(ctx context.Context, id int64) *PipelineExecutionLog {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -306,36 +306,36 @@ func (c *RetryHistoryClient) GetX(ctx context.Context, id int64) *RetryHistory {
 }
 
 // Hooks returns the client hooks.
-func (c *RetryHistoryClient) Hooks() []Hook {
-	return c.hooks.RetryHistory
+func (c *PipelineExecutionLogClient) Hooks() []Hook {
+	return c.hooks.PipelineExecutionLog
 }
 
 // Interceptors returns the client interceptors.
-func (c *RetryHistoryClient) Interceptors() []Interceptor {
-	return c.inters.RetryHistory
+func (c *PipelineExecutionLogClient) Interceptors() []Interceptor {
+	return c.inters.PipelineExecutionLog
 }
 
-func (c *RetryHistoryClient) mutate(ctx context.Context, m *RetryHistoryMutation) (Value, error) {
+func (c *PipelineExecutionLogClient) mutate(ctx context.Context, m *PipelineExecutionLogMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&RetryHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&PipelineExecutionLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&RetryHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&PipelineExecutionLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&RetryHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&PipelineExecutionLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&RetryHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&PipelineExecutionLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown RetryHistory mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown PipelineExecutionLog mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		RetryHistory []ent.Hook
+		PipelineExecutionLog []ent.Hook
 	}
 	inters struct {
-		RetryHistory []ent.Interceptor
+		PipelineExecutionLog []ent.Interceptor
 	}
 )
