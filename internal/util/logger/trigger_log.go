@@ -10,57 +10,40 @@ import (
 	"QuickBrick/internal/domain"
 )
 
-// WriteTriggerLogToFile 将完整的构建信息写入日志文件，并使用 zap 记录操作日志
-func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string, scriptOutput string) error {
-	// 解析环境层级
+func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string, scriptOutput string, ip string) error {
 	envType, subEnv, err := parseEnv(env)
 	if err != nil {
-		Logger.Error("Unsupported environment type",
-			zap.Any("msg", map[string]interface{}{
-				"action": "unsupported environment type",
-				"env": env,
-				"error": err.Error(),
-			}),
+		Error("不支持的环境类型", ip, 500,
+			zap.String("env", env),
+			zap.Error(err),
 		)
 		return err
 	}
 
-	// 构造目录结构
 	baseDir := "logs"
 	dateDir := time.Now().Format("20060102")
 	hourMin := time.Now().Format("1504")
-
-	// 构建完整路径
 	logDir := fmt.Sprintf("%s/%s/%s/%s", baseDir, envType, subEnv, dateDir)
 
-	// 创建目录结构
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		err = os.MkdirAll(logDir, 0755)
 		if err != nil {
-			Logger.Error("Cannot create log directory",
-				zap.Any("msg", map[string]interface{}{
-					"action": "cannot create log directory",
-					"dir": logDir,
-					"error": err.Error(),
-				}),
+			Error("无法创建日志目录", ip, 500,
+				zap.String("dir", logDir),
+				zap.Error(err),
 			)
 			return fmt.Errorf("无法创建日志目录: %v", err)
 		}
 	}
 
-	// 构造文件名
 	username := sanitizeUsername(pushEvent.UserName)
 	filename := fmt.Sprintf("%s/%s_%s.log", logDir, hourMin, username)
 
-	// 写入日志内容
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		Logger.Error("Cannot open log file",
-			zap.Any("msg", map[string]interface{}{
-				"action": "cannot open log file",
-				"filename": filename,
-				"error": err.Error(),
-			}),
+		Error("无法打开日志文件", ip, 500,
+			zap.String("filename", filename),
+			zap.Error(err),
 		)
 		return fmt.Errorf("无法打开日志文件: %v", err)
 	}
@@ -69,24 +52,18 @@ func WriteTriggerLogToFile(pushEvent domain.PushEvent, env string, script string
 	content := generateLogContent(pushEvent, env, script, scriptOutput)
 	_, err = file.WriteString(content)
 	if err != nil {
-		Logger.Error("Write log failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "write log failed",
-				"filename": filename,
-				"error": err.Error(),
-			}),
+		Error("写入日志失败", ip, 500,
+			zap.String("filename", filename),
+			zap.Error(err),
 		)
 		return fmt.Errorf("写入日志失败: %v", err)
 	}
 
-	Logger.Info("Write build log success",
-		zap.Any("msg", map[string]interface{}{
-			"action": "write build log success",
-			"env": env,
-			"filename": filename,
-			"project": pushEvent.Project.Name,
-			"ref": pushEvent.Ref,
-		}),
+	Info("构建日志写入成功", ip, 200,
+		zap.String("env", env),
+		zap.String("filename", filename),
+		zap.String("project", pushEvent.Project.Name),
+		zap.String("ref", pushEvent.Ref),
 	)
 
 	return nil

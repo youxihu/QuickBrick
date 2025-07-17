@@ -14,15 +14,15 @@ import (
 	"QuickBrick/internal/util/logger"
 )
 
-// BackendWebhookHandler 处理后端 GitLab Webhook 请求，并记录构建历史
 func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryService) {
+	ip := c.ClientIP()
+	status := c.Writer.Status()
+
 	gitlabToken := c.Request.Header.Get("X-Gitlab-Token")
 	if config.Cfg.SecretToken != "" && gitlabToken != config.Cfg.SecretToken {
-		logger.Logger.Warn("invalid token",
-			zap.Any("msg", map[string]interface{}{
-				"action": "invalid token",
-				"token":  gitlabToken,
-			}),
+		logger.Warn("invalid token", ip, http.StatusUnauthorized,
+			zap.String("action", "invalid token"),
+			zap.String("token", gitlabToken),
 		)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		return
@@ -30,11 +30,9 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 
 	body, err := c.GetRawData()
 	if err != nil {
-		logger.Logger.Error("read request body failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "read request body failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("read request body failed", ip, http.StatusInternalServerError,
+			zap.String("action", "read request body failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "read body failed"})
 		return
@@ -43,11 +41,9 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 	var pushEvent domain.PushEvent
 	err = json.Unmarshal(body, &pushEvent)
 	if err != nil {
-		logger.Logger.Error("json parse failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "json parse failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("json parse failed", ip, http.StatusBadRequest,
+			zap.String("action", "json parse failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		return
@@ -60,26 +56,22 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 	var triggeredPipelines []*service.BackendPipelineContext
 	switch pushEvent.ObjectKind {
 	case "push":
-		triggeredPipelines, err = webhookService.HandlePushEvent(pushEvent)
+		triggeredPipelines, err = webhookService.HandlePushEvent(pushEvent, ip)
 	case "tag_push":
-		triggeredPipelines, err = webhookService.HandleTagEvent(pushEvent)
+		triggeredPipelines, err = webhookService.HandleTagEvent(pushEvent, ip)
 	default:
-		logger.Logger.Info("event ignored",
-			zap.Any("msg", map[string]interface{}{
-				"action": "event ignored",
-				"reason": "unsupported event type",
-			}),
+		logger.Info("event ignored", ip, status,
+			zap.String("action", "event ignored"),
+			zap.String("reason", "unsupported event type"),
 		)
 		c.JSON(http.StatusOK, gin.H{"status": "ignored", "reason": "unsupported event type"})
 		return
 	}
 
 	if err != nil {
-		logger.Logger.Error("webhook event handle failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "webhook event handle failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("webhook event handle failed", ip, status,
+			zap.String("action", "webhook event handle failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "处理 webhook 事件失败"})
 		return
@@ -90,10 +82,7 @@ func BackendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistorySe
 		return
 	}
 
-	// 下沉到 service 层统一处理
-	// 调用异步方法，无需等待
-	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background())
+	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background(), ip)
 
-	// 立即返回成功响应
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "pipelines triggered asynchronously"})
 }

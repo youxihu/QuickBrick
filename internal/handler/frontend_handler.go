@@ -15,13 +15,14 @@ import (
 )
 
 func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryService) {
+	ip := c.ClientIP()
+	status := c.Writer.Status()
+
 	gitlabToken := c.Request.Header.Get("X-Gitlab-Token")
 	if config.Cfg.SecretToken != "" && gitlabToken != config.Cfg.SecretToken {
-		logger.Logger.Warn("invalid token",
-			zap.Any("msg", map[string]interface{}{
-				"action": "invalid token",
-				"token":  gitlabToken,
-			}),
+		logger.Warn("invalid token", ip, http.StatusUnauthorized,
+			zap.String("action", "invalid token"),
+			zap.String("token", gitlabToken),
 		)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		return
@@ -29,11 +30,9 @@ func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryS
 
 	body, err := c.GetRawData()
 	if err != nil {
-		logger.Logger.Error("read request body failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "read request body failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("read request body failed", ip, http.StatusInternalServerError,
+			zap.String("action", "read request body failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "read body failed"})
 		return
@@ -42,11 +41,9 @@ func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryS
 	var pushEvent domain.PushEvent
 	err = json.Unmarshal(body, &pushEvent)
 	if err != nil {
-		logger.Logger.Error("json parse failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "json parse failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("json parse failed", ip, http.StatusBadRequest,
+			zap.String("action", "json parse failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		return
@@ -56,14 +53,11 @@ func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryS
 
 	webhookService := service.NewFrontendWebhookService()
 
-	// 获取被触发的 pipelines
-	triggeredPipelines, err := webhookService.HandlePushEvent(pushEvent)
+	triggeredPipelines, err := webhookService.HandlePushEvent(pushEvent, ip)
 	if err != nil {
-		logger.Logger.Error("handle push event failed",
-			zap.Any("msg", map[string]interface{}{
-				"action": "handle push event failed",
-				"error":  err.Error(),
-			}),
+		logger.Error("webhook event handle failed", ip, status,
+			zap.String("action", "webhook event handle failed"),
+			zap.Error(err),
 		)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "处理 push 事件失败"})
 		return
@@ -74,9 +68,7 @@ func FrontendWebhookHandler(c *gin.Context, historySvc *service.PipelineHistoryS
 		return
 	}
 
-	// 调用异步方法，无需等待
-	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background())
+	webhookService.TriggerAndRecordPipelinesAsync(pushEvent, triggeredPipelines, historySvc, context.Background(), ip)
 
-	// 立即返回成功响应
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "pipelines triggered asynchronously"})
 }

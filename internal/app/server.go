@@ -2,6 +2,7 @@ package app
 
 import (
 	"QuickBrick/internal/repository"
+	"QuickBrick/internal/util/logger"
 	"fmt"
 	"github.com/gin-gonic/gin"
 
@@ -46,6 +47,7 @@ func RunServer() {
 
 	// 如果需要 Recovery 中间件（防止 panic 导致服务崩溃），可以手动添加
 	r.Use(gin.Recovery())
+	r.Use(logger.HTTPLoggerMiddleware())
 
 	// 注册路由
 	r.POST("/webhook/fe-full-chain", handler.Adapt(handler.FrontendWebhookHandler, pipelineHistorySvc))
