@@ -99,13 +99,22 @@ func (s *BuildRetryService) RetryBuild(ctx context.Context, env, commitID, pipel
 	}
 
 	if err := s.repo.SavePipelineExecution(ctx, dummyEvent, matchedPipeline, env, "success"); err != nil {
-		logger.Error("插入执行记录失败", ip, http.StatusInternalServerError,
+		// 插入失败，记录 error 日志
+		logger.Error("构建重试 插入执行记录失败", ip, http.StatusInternalServerError,
+			zap.String("action", "save build history failed"),
 			zap.String("env", env),
 			zap.String("commit_id", commitID),
 			zap.Error(err),
 		)
+		// 返回错误信息
 		return fmt.Errorf("插入记录失败: %v", err)
 	}
+
+	logger.Info("构建重试 插入执行记录成功", ip, http.StatusOK,
+		zap.String("action", "save build history succeeded"),
+		zap.String("env", env),
+		zap.String("commit_id", commitID),
+	)
 
 	return nil
 }

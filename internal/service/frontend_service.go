@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
 	"QuickBrick/internal/config"
@@ -26,7 +27,7 @@ type FrontendWebhookService struct{}
 // HandlePushEvent 处理前端 push 类型的 webhook 事件，并返回被触发的 pipelines
 func (s *FrontendWebhookService) HandlePushEvent(event domain.PushEvent, ip string) ([]*FrontendPipelineContext, error) {
 	if event.ObjectKind != "push" {
-		logger.Info("not a push event", ip, 500,
+		logger.Info("not a push event", ip, http.StatusInternalServerError,
 			zap.String("action", "not a push event"),
 			zap.String("event_type", event.ObjectKind),
 			zap.String("ip", ip),
@@ -47,7 +48,7 @@ func (s *FrontendWebhookService) HandlePushEvent(event domain.PushEvent, ip stri
 	}
 
 	if !buildTriggered && !buildOnlineTriggered {
-		logger.Info("no build triggered", ip, 200,
+		logger.Info("no build triggered", ip, http.StatusInternalServerError,
 			zap.String("action", "no build triggered"),
 			zap.String("reason", "no build keyword in commit message"),
 		)
@@ -101,7 +102,7 @@ func (s *FrontendWebhookService) triggerAndRecordPipelinesInternal(
 		p := item.Pipeline
 		env := item.RuntimeEnv
 
-		logger.Info("frontend build command detected, executing script", ip, 200,
+		logger.Info("frontend build command detected, executing script", ip, http.StatusOK,
 			zap.String("action", "frontend build command detected, executing script"),
 			zap.String("script", p.Script),
 			zap.String("env", env),
@@ -130,11 +131,17 @@ func (s *FrontendWebhookService) triggerAndRecordPipelinesInternal(
 		)
 
 		if histErr != nil {
-			logger.Warn("save build history failed", ip, 500,
+			logger.Warn("save build history failed", ip, http.StatusInternalServerError,
 				zap.String("action", "save build history failed"),
 				zap.String("pipeline_name", p.Name),
 				zap.String("env", env),
 				zap.Error(histErr),
+			)
+		} else {
+			logger.Info("save build history succeeded", ip, http.StatusOK,
+				zap.String("action", "save build history succeeded"),
+				zap.String("pipeline_name", p.Name),
+				zap.String("env", env),
 			)
 		}
 	}

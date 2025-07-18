@@ -8,10 +8,6 @@ import (
 
 func main() {
 	logger.InitLogger()
-	defer logger.Logger.Sync()
-	// 启动日志清理定时任务
 	cron.StartDailyLogCleaner()
-
-	// 启动 Web 服务（你的原有逻辑）
 	app.RunServer()
 }

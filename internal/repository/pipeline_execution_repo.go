@@ -109,7 +109,7 @@ func (r *EntPipelineExecutionRepository) FindLastValidBuildForRetry(ctx context.
 	}
 
 	return &domain.PipelineExecutionLog{
-		ID:            int64(record.ID),
+		ID:            record.ID,
 		Env:           record.Env,
 		Type:          record.Type,
 		EventType:     record.EventType,

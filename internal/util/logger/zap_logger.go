@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
@@ -111,29 +110,4 @@ func Error(msg string, ip string, status int, fields ...zap.Field) {
 
 func Fatal(msg string, ip string, status int, fields ...zap.Field) {
 	log(zapcore.FatalLevel, msg, ip, status, fields...)
-}
-
-func HTTPLoggerMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		clientIP := c.ClientIP()
-		c.Next()
-
-		status := c.Writer.Status()
-		method := c.Request.Method
-		path := c.Request.URL.Path
-
-		fields := []zap.Field{
-			zap.String("method", method),
-			zap.String("path", path),
-		}
-
-		switch {
-		case status >= 500:
-			Error("HTTP request", clientIP, status, fields...)
-		case status >= 400:
-			Warn("HTTP request", clientIP, status, fields...)
-		default:
-			Info("HTTP request", clientIP, status, fields...)
-		}
-	}
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"go.uber.org/zap"
+	"net/http"
 	"strings"
 
 	"QuickBrick/internal/config"
@@ -36,7 +37,7 @@ func (s *BackendWebhookService) HandlePushEvent(event domain.PushEvent, ip strin
 	}
 
 	if !buildTriggered && !buildOnlineTriggered {
-		logger.Info("no build triggered", ip, 200,
+		logger.Info("no build triggered", ip, http.StatusInternalServerError,
 			zap.String("action", "no build triggered"),
 			zap.String("reason", "no build keyword in commit message"),
 		)
@@ -68,7 +69,7 @@ func (s *BackendWebhookService) HandlePushEvent(event domain.PushEvent, ip strin
 }
 
 func (s *BackendWebhookService) HandleTagEvent(event domain.PushEvent, ip string) ([]*BackendPipelineContext, error) {
-	logger.Info("tag commit detected", ip, 200,
+	logger.Info("tag commit detected", ip, http.StatusOK,
 		zap.String("action", "tag commit detected"),
 	)
 
@@ -111,7 +112,7 @@ func (s *BackendWebhookService) triggerAndRecordPipelinesInternal(
 		p := item.Pipeline
 		env := item.RuntimeEnv
 
-		logger.Info("backend build command detected, executing script", ip, 200,
+		logger.Info("backend build command detected, executing script", ip, http.StatusOK,
 			zap.String("action", "backend build command detected, executing script"),
 			zap.String("script", p.Script),
 			zap.String("env", env),
@@ -140,11 +141,17 @@ func (s *BackendWebhookService) triggerAndRecordPipelinesInternal(
 		)
 
 		if histErr != nil {
-			logger.Warn("save build history failed", ip, 500,
+			logger.Warn("save build history failed", ip, http.StatusInternalServerError,
 				zap.String("action", "save build history failed"),
 				zap.String("pipeline_name", p.Name),
 				zap.String("env", env),
 				zap.Error(histErr),
+			)
+		} else {
+			logger.Info("save build history succeeded", ip, http.StatusOK,
+				zap.String("action", "save build history succeeded"),
+				zap.String("pipeline_name", p.Name),
+				zap.String("env", env),
 			)
 		}
 	}
